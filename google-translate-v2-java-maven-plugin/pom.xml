@@ -1,10 +1,43 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.ludup</groupId>
+	
+	<groupId>com.nervepoint</groupId>
 	<artifactId>google-translate-v2-java-maven-plugin</artifactId>
+	
 	<version>0.0.2-SNAPSHOT</version>
+	<url>http://www.nervepoint.com</url>
 	<packaging>maven-plugin</packaging>
+	
+	<name>Google Translate V2 Maven Plugin</name>
+	<description>A Maven plugin that provides translation of i18n resources using Google Translate V2 API</description>
+	
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<url>https://github.com/ludup/google-translate-v2-java-maven-plugin.git</url>
+		<connection>https://github.com/ludup/google-translate-v2-java-maven-plugin</connection>
+	</scm>
+
+	<developers>
+		<developer>
+			<id>lee</id>
+			<name>Lee David Painter</name>
+			<email>lee@nervepoint.com</email>
+		</developer>
+	</developers>
 
 	<dependencies>
 		<dependency>
@@ -18,9 +51,14 @@
 			<version>2.0.6</version>
 		</dependency>
 		<dependency>
-			<groupId>google-translate-api-v2-java-core</groupId>
-			<artifactId>google-translate-api-v2-java-core</artifactId>
-			<version>0.52</version>
+			<groupId>com.google.apis</groupId>
+			<artifactId>google-api-services-translate</artifactId>
+			<version>v2-rev27-1.17.0-rc</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.http-client</groupId>
+			<artifactId>google-http-client-jackson2</artifactId>
+			<version>1.17.0-rc</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
@@ -86,9 +124,39 @@
 			<url>http://artifactory.javassh.com/plugins-snapshots-local</url>
 		</snapshotRepository>
 	</distributionManagement>
-	
+
+	<profiles>
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.1</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 	<build>
-	    <plugins>
+		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -100,12 +168,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<repositories>
-		<repository>
-			<id>sshtools</id>
-			<name>sshtools-releases</name>
-			<url>http://artifactory.javassh.com/ext-releases-local</url>
-		</repository>
-	</repositories>
 </project>
