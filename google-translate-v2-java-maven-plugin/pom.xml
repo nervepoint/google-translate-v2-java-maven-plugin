@@ -112,19 +112,6 @@
 		</dependency>
 	</dependencies>
 
-	<distributionManagement>
-		<repository>
-			<id>plugins-releases</id>
-			<name>plugins-releases</name>
-			<url>http://artifactory.javassh.com/plugins-releases-local</url>
-		</repository>
-		<snapshotRepository>
-			<id>plugins-snapshots</id>
-			<name>plugins-snapshots</name>
-			<url>http://artifactory.javassh.com/plugins-snapshots-local</url>
-		</snapshotRepository>
-	</distributionManagement>
-
 	<profiles>
 		<profile>
 			<id>release-sign-artifacts</id>
