@@ -1,17 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
 	<groupId>com.nervepoint</groupId>
 	<artifactId>google-translate-v2-java-maven-plugin</artifactId>
-	
 	<version>0.0.2-SNAPSHOT</version>
-	<url>http://www.nervepoint.com</url>
+	<url>http://www.nervepoint.com/</url>
 	<packaging>maven-plugin</packaging>
-	
+
 	<name>Google Translate V2 Maven Plugin</name>
 	<description>A Maven plugin that provides translation of i18n resources using Google Translate V2 API</description>
-	
+
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
@@ -27,8 +25,8 @@
 	</licenses>
 
 	<scm>
-		<url>https://github.com/ludup/google-translate-v2-java-maven-plugin.git</url>
-		<connection>https://github.com/ludup/google-translate-v2-java-maven-plugin</connection>
+		<url>scm:git:https://github.com/ludup/google-translate-v2-java-maven-plugin.git</url>
+		<connection>scm:git:https://github.com/ludup/google-translate-v2-java-maven-plugin</connection>
 	</scm>
 
 	<developers>
@@ -152,6 +150,30 @@
 					<source>1.6</source>
 					<target>1.6</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

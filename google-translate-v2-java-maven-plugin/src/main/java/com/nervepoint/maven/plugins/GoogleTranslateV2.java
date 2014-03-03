@@ -36,7 +36,8 @@ import com.google.api.services.translate.model.TranslationsResource;
  * @goal translate
  * @requiresProject false
  * 
- * @author L
+ * @author Lee David Painter
+ * @author Brett Smith
  * 
  */
 public class GoogleTranslateV2 extends AbstractMojo {
