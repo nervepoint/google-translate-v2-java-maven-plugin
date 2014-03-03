@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.nervepoint</groupId>
 	<artifactId>google-translate-v2-java-maven-plugin</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<url>http://www.nervepoint.com/</url>
 	<packaging>maven-plugin</packaging>
 
