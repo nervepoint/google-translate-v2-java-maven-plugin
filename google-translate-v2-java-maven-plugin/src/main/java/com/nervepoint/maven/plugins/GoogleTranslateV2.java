@@ -209,9 +209,16 @@ public class GoogleTranslateV2 extends AbstractMojo {
             if (p.isFile()) {
                 int lidx = fileName.lastIndexOf('/');
                 String dir = lidx == -1 ? "" : fileName.substring(0, lidx);
+                String pname = p.getName();
+                int idx = pname.lastIndexOf('.');
+                if(idx == -1) {
+                    getLog().error("Resource bundles must end with .properties");
+                    continue;
+                }
+                pname = pname.substring(0, idx);
 
                 // https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html
-                String[] parts = p.getName().split("_");
+                String[] parts = pname.split("_");
                 String base = parts[0];
 
                 String lang = sourceLanguage;
