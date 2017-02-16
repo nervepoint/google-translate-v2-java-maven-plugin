@@ -9,6 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -86,6 +87,14 @@ public class GoogleTranslateV2 extends AbstractMojo {
     private String cacheTag;
 
     @Parameter
+    private String format;
+
+    @Parameter(defaultValue = "true")
+    private boolean useHtmlForNonTranslatable = true;
+
+    @Parameter
+    private int maxSourcesPerCall = 10;
+    @Parameter
     private List<String> noTranslatePattern = new ArrayList<String>();
 
     @Parameter(defaultValue = "true")
@@ -135,6 +144,9 @@ public class GoogleTranslateV2 extends AbstractMojo {
         rootCacheDir.mkdirs();
 
         replacer = new PatternReplacer();
+        if (!noTranslatePattern.isEmpty() && useHtmlForNonTranslatable) {
+            replacer.setUntranslatableString("<span class=\"notranslate\">NO_TRANSLATE</span>");
+        }
         for (String p : noTranslatePattern) {
             getLog().info("Will not translate content matching " + p);
             replacer.addPattern(p);
@@ -145,9 +157,8 @@ public class GoogleTranslateV2 extends AbstractMojo {
             httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 
             // set up global Translate instance
-            client = new Translate.Builder(httpTransport, JSON_FACTORY, null)
-                            .setGoogleClientRequestInitializer(new TranslateRequestInitializer(apikey))
-                            .setApplicationName("GoogleTranslateMavenPlugin/0.2").build();
+            client = new Translate.Builder(httpTransport, JSON_FACTORY, null).setGoogleClientRequestInitializer(
+                new TranslateRequestInitializer(apikey)).setApplicationName("GoogleTranslateMavenPlugin/0.2").build();
 
             try {
 
@@ -211,7 +222,7 @@ public class GoogleTranslateV2 extends AbstractMojo {
                 String dir = lidx == -1 ? "" : fileName.substring(0, lidx);
                 String pname = p.getName();
                 int idx = pname.lastIndexOf('.');
-                if(idx == -1) {
+                if (idx == -1) {
                     getLog().error("Resource bundles must end with .properties");
                     continue;
                 }
@@ -265,8 +276,8 @@ public class GoogleTranslateV2 extends AbstractMojo {
                     }
                 }
 
-                if (!Objects.equals(sourceLanguage, lang) || !Objects.equals(sourceCountry, country)
-                                || !Objects.equals(sourceScript, script) || !Objects.equals(sourceVariant, variant)) {
+                if (!Objects.equals(sourceLanguage, lang) || !Objects.equals(sourceCountry, country) || !Objects.equals(
+                    sourceScript, script) || !Objects.equals(sourceVariant, variant)) {
                     getLog().info("Skipping " + p.getName() + " because it is not the same as the source locale");
                 } else {
                     File dest = dir.equals("") ? destinationDir : new File(destinationDir, dir);
@@ -281,8 +292,8 @@ public class GoogleTranslateV2 extends AbstractMojo {
 
     }
 
-    private void translateFile(File sourceFile, String baseName, File desintationDir, File sourceCacheDir)
-                    throws IOException, URISyntaxException {
+    private void translateFile(File sourceFile, String baseName, File desintationDir, File sourceCacheDir) throws IOException,
+                    URISyntaxException {
 
         StringTokenizer t = new StringTokenizer(languages, ",");
         while (t.hasMoreTokens()) {
@@ -301,8 +312,7 @@ public class GoogleTranslateV2 extends AbstractMojo {
     }
 
     private void translateFileToLanguage(File sourceFile, String baseName, File destinationDir, File sourceCacheDir,
-                                         String language)
-                    throws IOException, URISyntaxException {
+                                         String language) throws IOException, URISyntaxException {
 
         sourceCacheDir.mkdirs();
 
@@ -322,100 +332,12 @@ public class GoogleTranslateV2 extends AbstractMojo {
 
         boolean needCacheWrite = false;
 
-        // List<String> toTranslateValues = new ArrayList<String>();
-        // List<String> toTranslateKeys = new ArrayList<String>();
-        // for (String name : p.stringPropertyNames()) {
-        //
-        // // The unprocessed content from the base resource file
-        // String originalContent = p.getProperty(name);
-        //
-        // /*
-        // * We process the source property for any patterns we don't want to
-        // * translate. These are sent to Google and the returned content is
-        // * processed again, putting the untranslatable text back where it
-        // * was.
-        // */
-        // String processed = replacer.preProcess(originalContent);
-        //
-        // if (override.containsKey(name)) {
-        // translated.put(name, override.getProperty(name));
-        // getLog().info("Detected overridden text for " + name);
-        // continue;
-        // } else if (cached.containsKey(name)) {
-        //
-        // String c = cached.getProperty(name);
-        // int idx = c.indexOf('|');
-        // String h = c.substring(0, idx);
-        // String text = c.substring(idx + 1);
-        //
-        // if (hash(processed).equals(h)) {
-        // translated.put(name, replacer.postProcess(text));
-        // continue;
-        // }
-        // getLog().info("Detected change to cached text for " + name);
-        // }
-        //
-        // getLog().info("Translating " + name);
-        //
-        // toTranslateKeys.add(name);
-        // toTranslateValues.add(processed);
-        //
-        // String translation = translate(processed, sourceLanguage, language);
-        //
-        //
-        // // And now the bit where the original untranslatable text is put
-        // // back
-        // String postProcessed = replacer.postProcess(translation);
-        //
-        // translated.put(name, postProcessed);
-        // cached.put(name, hash(processed) + "|" + translation);
-        // needCacheWrite = true;
-        //
-        // }
-        //
-        // File target = new File(destinationDir, baseName + "_" + language
-        // + ".properties");
-        //
-        // if (target.exists()) {
-        // getLog().info(
-        // "Deleting existing target " + target.getName()
-        // + " as we have a new translation.");
-        // target.delete();
-        // }
-        //
-        // FileOutputStream out = new FileOutputStream(target);
-        // try {
-        // translated.store(out,
-        // "Auto generated by Google Translate V2 API maven plugin");
-        // } finally {
-        // out.close();
-        // }
-        //
-        // if (needCacheWrite) {
-        // out = new FileOutputStream(previousTranslation);
-        // try {
-        // cached.store(
-        // out,
-        // "Cache of auto generated google translations for Google Translate V2
-        // API maven plugin");
-        // } finally {
-        // out.close();
-        // }
-        // }
-        //
-        /**
-         * The section below is more efficient, performing multiple translations
-         * in each API call, but there are limits to the number of texts we can
-         * send in a single call, thus, this will need improving before we can
-         * use it.
-         */
-        List<String> toTranslateValues = new ArrayList<String>();
-        List<String> toTranslateKeys = new ArrayList<String>();
-        int characters = 0;
+        List<TranslationOp> ops = new ArrayList<TranslationOp>();
+
         for (String name : p.stringPropertyNames()) {
 
             // The unprocessed content from the base resource file
-            String originalContent = p.getProperty(name);
+            String originalContent = p.getProperty(name).trim();
 
             /*
              * We process the source property for any patterns we don't want to
@@ -424,6 +346,13 @@ public class GoogleTranslateV2 extends AbstractMojo {
              * was.
              */
             String processed = replacer.preProcess(originalContent);
+
+            if (originalContent.equals("")) {
+                translated.put(name, "");
+                cached.put(name, hash("") + "|" + "");
+                needCacheWrite = true;
+                continue;
+            }
 
             if (override.containsKey(name)) {
                 translated.put(name, override.getProperty(name));
@@ -444,55 +373,98 @@ public class GoogleTranslateV2 extends AbstractMojo {
             }
 
             getLog().debug("Marking " + name + " for translation");
+            
+            /* Determine format **/
+            String format = this.format;
+            String originalFormat = processed.indexOf("<html>") != -1 ? "html" : "text";
+            if(useHtmlForNonTranslatable && !noTranslatePattern.isEmpty())
+                format = "html";
+            else if(format == null)
+                format = originalFormat;
+                
 
-            toTranslateKeys.add(name);
-            toTranslateValues.add(processed);
+            ops.add(new TranslationOp(name, processed, new ArrayList<String>(replacer.getContentMap()), format, originalFormat));
 
-            characters += processed.length();
-
-            if (characters > 4000) {
-
-                getLog().info("Translating " + characters + " characters");
-                List<TranslationsResource> translations = translate(toTranslateValues, sourceLanguage, language);
-
-                for (TranslationsResource t : translations) {
-                    // And now the bit where the original untranslatable text is
-                    // put
-                    // back
-                    String postProcessed = replacer.postProcess(t.getTranslatedText());
-
-                    name = toTranslateKeys.remove(0);
-                    processed = toTranslateValues.remove(0);
-
-                    translated.put(name, postProcessed);
-                    cached.put(name, hash(processed) + "|" + t.getTranslatedText());
-                    needCacheWrite = true;
-                }
-
-                characters = 0;
-            }
+            // if (characters > 4000) {
+            //
+            // getLog().info("Translating " + characters + " characters");
+            // List<TranslationsResource> translations =
+            // translate(toTranslateValues, sourceLanguage, language);
+            //
+            // for (TranslationsResource t : translations) {
+            //
+            // name = toTranslateKeys.remove(0);
+            // processed = toTranslateValues.remove(0);
+            // replacer.getContentMap().clear();
+            // replacer.getContentMap().addAll(toTranslateMap.remove(0));
+            //
+            // // And now the bit where the original untranslatable
+            // // text is
+            // // put
+            // // back
+            // String postProcessed =
+            // replacer.postProcess(t.getTranslatedText());
+            //
+            // translated.put(name, postProcessed);
+            // cached.put(name, hash(processed) + "|" + t.getTranslatedText());
+            // needCacheWrite = true;
+            // }
+            //
+            // characters = 0;
+            // }
         }
 
-        if (characters > 0) {
+        if (!ops.isEmpty()) {
 
-            getLog().info("Translating " + characters + " characters [final translation for this module]");
+            getLog().info("Translating " + ops.size() + " properties");
 
-            List<TranslationsResource> translations = translate(toTranslateValues, sourceLanguage, language);
+            String format = null;
+            while (!ops.isEmpty()) {
+                List<TranslationOp> todo = new ArrayList<TranslationOp>();
 
-            for (TranslationsResource t : translations) {
-                // And now the bit where the original untranslatable text is put
-                // back
-                String postProcessed = replacer.postProcess(t.getTranslatedText());
+                for (TranslationOp op : new ArrayList<TranslationOp>(ops)) {
+                    ops.remove(op);
 
-                String name = toTranslateKeys.remove(0);
-                String processed = toTranslateValues.remove(0);
+                    if (op.value.length() == 0)
+                        continue;
 
-                translated.put(name, postProcessed);
-                cached.put(name, hash(processed) + "|" + t.getTranslatedText());
-                needCacheWrite = true;
+                    if (!hasAnyAlpha(op.value))
+                        continue;
+
+                    if (format == null)
+                        format = op.format;
+                    else if (!format.equals(op.format))
+                        break;
+
+                    todo.add(op);
+
+                    if (todo.size() >= maxSourcesPerCall)
+                        break;
+                }
+
+                if (!todo.isEmpty()) {
+                    translateOps(todo, sourceLanguage, language);
+
+                    /* Post process */
+                    for (TranslationOp op : todo) {
+                        replacer.getContentMap().clear();
+                        replacer.getContentMap().addAll(op.map);
+                        String postProcessed = op.value;
+                        try {
+                            postProcessed = replacer.postProcess(op.translated);
+                        } catch (RuntimeException rte) {
+                            getLog().warn("Failed to translate '" + op.value + "'. " + rte.getMessage()
+                                            + ". Will use processed text.");
+                        }
+                        translated.put(op.keyName, postProcessed);
+                        cached.put(op.keyName, hash(op.value) + "|" + op.translated);
+                        needCacheWrite = true;
+                    }
+                }
+
+                format = null;
             }
 
-            characters = 0;
         }
 
         File target = new File(destinationDir, baseName + "_" + language + ".properties");
@@ -520,28 +492,43 @@ public class GoogleTranslateV2 extends AbstractMojo {
 
     }
 
-    List<TranslationsResource> translate(List<String> sources, String sourceLang, String targetLang) throws IOException {
-
-        Translate.Translations.List res = client.translations().list(sources, targetLang);
-        res.setSource(sourceLang);
-        TranslationsListResponse c = res.execute();
-
-        return c.getTranslations();
-
+    boolean hasAnyAlpha(String str) {
+        for (char c : str.toCharArray()) {
+            if (Character.isAlphabetic(c))
+                return true;
+        }
+        return false;
     }
 
-    String translate(String source, String sourceLang, String targetLang) throws IOException {
-
-        List<String> text = new ArrayList<String>();
-        text.add(source);
-
-        Translate.Translations.List res = client.translations().list(text, targetLang);
+    void translateOps(List<TranslationOp> sources, String sourceLang, String targetLang) throws IOException {
+        List<String> strings = new ArrayList<String>();
+        String format = null;
+        for (TranslationOp op : sources) {
+            strings.add(op.value);
+            if (format != null && !format.equals(op.format)) {
+                throw new IllegalStateException("Can only translate one format at a time.");
+            }
+            format = op.format;
+        }
+        Translate.Translations.List res = client.translations().list(strings, targetLang);
         res.setSource(sourceLang);
+        res.setFormat(format);
+        try {
+            TranslationsListResponse c = res.execute();
+            List<TranslationsResource> translations = c.getTranslations();
+            Iterator<TranslationsResource> it = translations.iterator();
+            for (TranslationOp op : sources) {
+                op.translated = it.next().getTranslatedText();
 
-        TranslationsListResponse c = res.execute();
-
-        return c.getTranslations().get(0).getTranslatedText();
-
+                /* Convert back to original format */
+                if(!op.format.equals(op.originalFormat) && op.originalFormat.equals("text")) {
+                    // TODO does this happen? (need to see final translation)
+                }
+            }
+        } catch (Exception e) {
+            throw new IOException("Failed while translating '" + sources.toString() + "' from " + sourceLang + " into "
+                            + targetLang, e);
+        }
     }
 
     private String hash(String content) {
@@ -574,6 +561,23 @@ public class GoogleTranslateV2 extends AbstractMojo {
         }
 
         return p;
+    }
+
+    class TranslationOp {
+        String keyName;
+        String value;
+        List<String> map;
+        String translated;
+        String format;
+        String originalFormat;
+
+        TranslationOp(String keyName, String value, List<String> map, String format, String originalFormat) {
+            this.keyName = keyName;
+            this.value = value;
+            this.map = map;
+            this.format = format;
+            this.originalFormat = originalFormat;
+        }
     }
 
 }

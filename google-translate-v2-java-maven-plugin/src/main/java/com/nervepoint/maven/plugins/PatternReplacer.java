@@ -14,7 +14,7 @@ public class PatternReplacer {
      * sent to the translator. The result content is then processed again,
      * putting the variable names back
      */
-    private final static String UNTRANSLATABLE_STRING = "_999_";
+    private String untranslatableString = "_999_";
 
     private List<String> patterns = new ArrayList<String>();
     private List<String> contentMap = new ArrayList<String>();
@@ -22,8 +22,20 @@ public class PatternReplacer {
     public PatternReplacer() {
     }
 
+    public String getUntranslatableString() {
+        return untranslatableString;
+    }
+    
+    public void setUntranslatableString(String untranslatableString) {
+        this.untranslatableString = untranslatableString;
+    }
+
     public void addPattern(String pattern) {
         patterns.add(pattern);
+    }
+
+    public List<String> getContentMap() {
+        return contentMap;
     }
 
     public String preProcess(String content) {
@@ -42,10 +54,10 @@ public class PatternReplacer {
             while (m.find()) {
                 String match = m.group();
                 contentMap.add(match);
-                m.appendReplacement(sb, UNTRANSLATABLE_STRING);
+                m.appendReplacement(sb, untranslatableString);
             }
             m.appendTail(sb);
-            content = m.replaceAll(UNTRANSLATABLE_STRING);
+            content = m.replaceAll(untranslatableString);
         }
         return content;
     }
@@ -54,11 +66,11 @@ public class PatternReplacer {
         String originalContent = content;
         int idx;
         for (String s : contentMap) {
-            idx = content.indexOf(UNTRANSLATABLE_STRING);
+            idx = content.indexOf(untranslatableString);
             if(idx == -1) {
                 throw new RuntimeException("Expected to find an untranslateable string, but there was not one. The string we were given was '" + originalContent + "'. So far, we replace variables so it contains '" + content + "'. The content map contains " + contentMap.size() + " variables that should be replaced.");
             }
-            content = content.substring(0, idx) + s + content.substring(idx + UNTRANSLATABLE_STRING.length());
+            content = content.substring(0, idx) + s + content.substring(idx + untranslatableString.length());
         }
         return content;
     }
