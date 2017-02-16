@@ -17,6 +17,7 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.maven.model.FileSet;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -94,8 +95,12 @@ public class GoogleTranslateV2 extends AbstractMojo {
 
     @Parameter
     private int maxSourcesPerCall = 10;
+    
     @Parameter
     private List<String> noTranslatePattern = new ArrayList<String>();
+    
+    @Parameter
+    private List<String> excludeKeys = new ArrayList<String>();
 
     @Parameter(defaultValue = "true")
     private boolean failOnMissingCacheDir;
@@ -430,6 +435,9 @@ public class GoogleTranslateV2 extends AbstractMojo {
 
                     if (!hasAnyAlpha(op.value))
                         continue;
+                    
+                    if(!isIncludeKey(op.keyName))
+                        continue;
 
                     if (format == null)
                         format = op.format;
@@ -492,6 +500,18 @@ public class GoogleTranslateV2 extends AbstractMojo {
 
     }
 
+    private boolean isIncludeKey(String keyName) {
+        return !matches(excludeKeys, keyName);
+    }
+    
+    private boolean matches(List<String> patterns, String text) {
+        for(String p : patterns) {
+            if(text.matches(p))
+                return true;
+        }
+        return false;
+    }
+
     boolean hasAnyAlpha(String str) {
         for (char c : str.toCharArray()) {
             if (Character.isAlphabetic(c))
@@ -522,7 +542,7 @@ public class GoogleTranslateV2 extends AbstractMojo {
 
                 /* Convert back to original format */
                 if(!op.format.equals(op.originalFormat) && op.originalFormat.equals("text")) {
-                    // TODO does this happen? (need to see final translation)
+                    op.translated = StringEscapeUtils.unescapeHtml4(op.translated);
                 }
             }
         } catch (Exception e) {
