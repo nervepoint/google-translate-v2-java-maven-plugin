@@ -150,7 +150,7 @@ public class GoogleTranslateV2 extends AbstractMojo {
 
         replacer = new PatternReplacer();
         if (!noTranslatePattern.isEmpty() && useHtmlForNonTranslatable) {
-            replacer.setUntranslatableString("<span class=\"notranslate\">NO_TRANSLATE</span>");
+            replacer.setUntranslatableStrings("<span class=\"notranslate\">NO_TRANSLATE</span>","NO_TRANSLATE");
         }
         for (String p : noTranslatePattern) {
             getLog().info("Will not translate content matching " + p);
