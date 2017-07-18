@@ -1,6 +1,8 @@
-package com.nervepoint.maven.plugins;
+package com.nervepoint.googletranslate;
 
 import org.junit.Test;
+
+import com.nervepoint.googletranslate.PatternReplacer;
 
 import junit.framework.Assert;
 

@@ -1,4 +1,4 @@
-package com.nervepoint.maven.plugins;
+package com.nervepoint.googletranslate;
 
 import java.util.ArrayList;
 import java.util.List;
