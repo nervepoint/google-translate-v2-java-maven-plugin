@@ -13,7 +13,7 @@ import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.nervepoint.googletranslate.Translater.FileProvider;
+import com.nervepoint.googletranslate.Translater.TranslatableProvider;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
 
@@ -86,7 +86,7 @@ public class TranslaterTest {
         return t;
     }
 
-    class StringFileProvider implements FileProvider {
+    class StringFileProvider implements TranslatableProvider {
         File f;
         String key;
 
@@ -120,8 +120,8 @@ public class TranslaterTest {
 
         @SuppressWarnings("unchecked")
         @Override
-        public Iterable<File> getFiles() throws IOException {
-            return Arrays.asList(new File[] { f });
+        public Iterable<Translatable> getTranslatables() throws IOException {
+            return Arrays.asList(new Translatable[] { new Translatable(f) });
         }
 
     }

@@ -32,8 +32,8 @@ import com.google.api.services.translate.model.TranslationsResource;
 
 public class Translater {
 
-    public interface FileProvider {
-        Iterable<File> getFiles() throws IOException;
+    public interface TranslatableProvider {
+        Iterable<Translatable> getTranslatables() throws IOException;
     }
 
     final static Logger LOG = LoggerFactory.getLogger(Translater.class);
@@ -59,13 +59,13 @@ public class Translater {
     private List<String> excludeKeys = new ArrayList<String>();
     private boolean failOnMissingCacheDir = true;
     private PatternReplacer replacer;
-    private FileProvider fileProvider;
+    private TranslatableProvider fileProvider;
 
-    public FileProvider getFileProvider() {
+    public TranslatableProvider getFileProvider() {
         return fileProvider;
     }
 
-    public void setFileProvider(FileProvider fileProvider) {
+    public void setFileProvider(TranslatableProvider fileProvider) {
         this.fileProvider = fileProvider;
     }
 
@@ -235,12 +235,12 @@ public class Translater {
 
         destinationDir.mkdirs();
 
-        for (File p : fileProvider.getFiles()) {
-            if (p.isFile()) {
-                String fileName = p.getName();
+        for (Translatable p : fileProvider.getTranslatables()) {
+            if (p.getFile().isFile()) {
+                String fileName = p.getRelativePath();
                 int lidx = fileName.lastIndexOf('/');
                 String dir = lidx == -1 ? "" : fileName.substring(0, lidx);
-                String pname = p.getName();
+                String pname = p.getFile().getName();
                 int idx = pname.lastIndexOf('.');
                 if (idx == -1) {
                     LOG.error("Resource bundles must end with .properties");
@@ -298,14 +298,14 @@ public class Translater {
 
                 if (!Objects.equals(sourceLanguage, lang) || !Objects.equals(sourceCountry, country) || !Objects.equals(
                     sourceScript, script) || !Objects.equals(sourceVariant, variant)) {
-                    LOG.info("Skipping " + p.getName() + " because it is not the same as the source locale");
+                    LOG.info("Skipping " + p.getFile().getName() + " because it is not the same as the source locale");
                 } else {
                     File dest = dir.equals("") ? destinationDir : new File(destinationDir, dir);
                     File destCache = dir.equals("") ? sourceCacheDir : new File(sourceCacheDir, dir);
 
                     LOG.info("    " + fileName + " -> " + dest.getAbsolutePath() + " [" + destCache.getAbsolutePath() + "]");
 
-                    translateFile(p, base, dest, destCache);
+                    translateFile(p.getFile(), base, dest, destCache);
                 }
             }
         }
