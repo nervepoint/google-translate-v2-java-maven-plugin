@@ -192,10 +192,6 @@
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>3.2.0</version>
 					<configuration>
-						<!-- TODO: Why is this STILL broken! -->
-						<javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
-
-						<!-- <skip>true</skip> -->
 						<encoding>UTF-8</encoding>
 						<excludePackageNames>**.impl.*</excludePackageNames>
 
