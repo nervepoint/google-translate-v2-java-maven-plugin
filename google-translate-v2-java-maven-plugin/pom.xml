@@ -15,7 +15,18 @@
 		<artifactId>oss-parent</artifactId>
 		<version>7</version>
 	</parent>
-
+	
+	<distributionManagement>
+		<repository>
+			<id>opensource-releases</id>
+			<url>http://artifactory.javassh.com/opensource-releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>opensource-releases</id>
+			<url>http://artifactory.javassh.com/opensource-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+	
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
