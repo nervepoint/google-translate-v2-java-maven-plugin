@@ -25,7 +25,7 @@ import com.nervepoint.googletranslate.Translater.TranslatableProvider;
  * @author Brett Smith
  * 
  */
-@Mojo(name = "translate", requiresProject = false)
+@Mojo(name = "translate", requiresProject = false, threadSafe = true)
 public class GoogleTranslateV2 extends AbstractMojo {
 
 	@Parameter(defaultValue = "${api.key}")
@@ -120,6 +120,7 @@ public class GoogleTranslateV2 extends AbstractMojo {
 		// Build translater
 		Translater translater = new Translater();
 		translater.setCacheDir(rootCacheDir);
+		translater.setThreadSafe(true);
 		translater.setExcludeKeys(excludeKeys);
 		translater.setFailOnMissingCacheDir(failOnMissingCacheDir);
 		translater.setApikey(apikey);

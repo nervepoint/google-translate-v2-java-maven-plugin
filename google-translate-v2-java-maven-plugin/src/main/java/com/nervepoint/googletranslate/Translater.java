@@ -38,6 +38,8 @@ public class Translater {
 
     final static Logger LOG = LoggerFactory.getLogger(Translater.class);
 
+	private static final int LOCK_TIMEOUT = 300;
+
     private final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
     private HttpTransport httpTransport;
@@ -60,8 +62,17 @@ public class Translater {
     private boolean failOnMissingCacheDir = true;
     private PatternReplacer replacer;
     private TranslatableProvider fileProvider;
+    private boolean threadSafe;
 
-    public TranslatableProvider getFileProvider() {
+    public boolean isThreadSafe() {
+		return threadSafe;
+	}
+
+	public void setThreadSafe(boolean threadSafe) {
+		this.threadSafe = threadSafe;
+	}
+
+	public TranslatableProvider getFileProvider() {
         return fileProvider;
     }
 
@@ -236,77 +247,106 @@ public class Translater {
         destinationDir.mkdirs();
 
         for (Translatable p : fileProvider.getTranslatables()) {
-            if (p.getFile().isFile()) {
-                String fileName = p.getRelativePath();
-                int lidx = fileName.lastIndexOf('/');
-                String dir = lidx == -1 ? "" : fileName.substring(0, lidx);
-                String pname = p.getFile().getName();
-                int idx = pname.lastIndexOf('.');
-                if (idx == -1) {
-                    LOG.error("Resource bundles must end with .properties");
-                    continue;
-                }
-                pname = pname.substring(0, idx);
-
-                // https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html
-                String[] parts = pname.split("_");
-                String base = parts[0];
-
-                String lang = sourceLanguage;
-                String country = sourceCountry;
-                String script = sourceScript;
-                String variant = sourceVariant;
-
-                if (parts.length > 1) {
-                    lang = parts[1];
-                    if (parts.length > 4) {
-                        script = parts[2];
-                        country = parts[3];
-                        variant = parts[4];
-                    } else if (parts.length > 3) {
-                        // Ambiguous, could be either
-                        // language + "_" + script + "_" + country
-                        // language + "_" + country + "_" + variant
-                        for (Locale l : Locale.getAvailableLocales()) {
-                            if (l.getCountry().equals(parts[2])) {
-                                country = parts[2];
-                                variant = parts[3];
-                                break;
-                            }
-                        }
-                        if (country == null) {
-                            script = parts[2];
-                            country = parts[3];
-                        }
-
-                    } else if (parts.length > 2) {
-                        // Ambiguous, could be either
-                        // language + "_" + script
-                        // language + "_" + country
-
-                        for (Locale l : Locale.getAvailableLocales()) {
-                            if (l.getCountry().equals(parts[2])) {
-                                country = parts[2];
-                                break;
-                            }
-                        }
-                        if (country == null) {
-                            script = parts[2];
-                        }
-                    }
-                }
-
-                if (!Objects.equals(sourceLanguage, lang) || !Objects.equals(sourceCountry, country) || !Objects.equals(
-                    sourceScript, script) || !Objects.equals(sourceVariant, variant)) {
-                    LOG.info("Skipping " + p.getFile().getName() + " because it is not the same as the source locale");
-                } else {
-                    File dest = dir.equals("") ? destinationDir : new File(destinationDir, dir);
-                    File destCache = dir.equals("") ? sourceCacheDir : new File(sourceCacheDir, dir);
-
-                    LOG.info("    " + fileName + " -> " + dest.getAbsolutePath() + " [" + destCache.getAbsolutePath() + "]");
-
-                    translateFile(p.getFile(), base, dest, destCache);
-                }
+            File pfile = p.getFile();
+			if (pfile.isFile()) {
+            	
+				File lockFile  = null;
+				
+				if(threadSafe) {
+					lockFile = new File(pfile.getParentFile(), pfile.getName() + ".gt_mt_lock");
+					for(int i = 0 ; i < LOCK_TIMEOUT ; i++) {
+						if(lockFile.exists()) {
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException e) {
+								throw new IllegalStateException("Locking interrupted.", e);
+							}
+						}
+						else
+							break;
+					}
+					if(lockFile.exists())
+						throw new IllegalStateException("Failed to get an exclusive lock on " + pfile);
+					lockFile.createNewFile();
+					lockFile.deleteOnExit();
+				}
+				
+				try {
+	                String fileName = p.getRelativePath();
+	                int lidx = fileName.lastIndexOf('/');
+	                String dir = lidx == -1 ? "" : fileName.substring(0, lidx);
+	                String pname = pfile.getName();
+	                int idx = pname.lastIndexOf('.');
+	                if (idx == -1) {
+	                    LOG.error("Resource bundles must end with .properties");
+	                    continue;
+	                }
+	                pname = pname.substring(0, idx);
+	
+	                // https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html
+	                String[] parts = pname.split("_");
+	                String base = parts[0];
+	
+	                String lang = sourceLanguage;
+	                String country = sourceCountry;
+	                String script = sourceScript;
+	                String variant = sourceVariant;
+	
+	                if (parts.length > 1) {
+	                    lang = parts[1];
+	                    if (parts.length > 4) {
+	                        script = parts[2];
+	                        country = parts[3];
+	                        variant = parts[4];
+	                    } else if (parts.length > 3) {
+	                        // Ambiguous, could be either
+	                        // language + "_" + script + "_" + country
+	                        // language + "_" + country + "_" + variant
+	                        for (Locale l : Locale.getAvailableLocales()) {
+	                            if (l.getCountry().equals(parts[2])) {
+	                                country = parts[2];
+	                                variant = parts[3];
+	                                break;
+	                            }
+	                        }
+	                        if (country == null) {
+	                            script = parts[2];
+	                            country = parts[3];
+	                        }
+	
+	                    } else if (parts.length > 2) {
+	                        // Ambiguous, could be either
+	                        // language + "_" + script
+	                        // language + "_" + country
+	
+	                        for (Locale l : Locale.getAvailableLocales()) {
+	                            if (l.getCountry().equals(parts[2])) {
+	                                country = parts[2];
+	                                break;
+	                            }
+	                        }
+	                        if (country == null) {
+	                            script = parts[2];
+	                        }
+	                    }
+	                }
+	
+	                if (!Objects.equals(sourceLanguage, lang) || !Objects.equals(sourceCountry, country) || !Objects.equals(
+	                    sourceScript, script) || !Objects.equals(sourceVariant, variant)) {
+	                    LOG.info("Skipping " + pfile.getName() + " because it is not the same as the source locale");
+	                } else {
+	                    File dest = dir.equals("") ? destinationDir : new File(destinationDir, dir);
+	                    File destCache = dir.equals("") ? sourceCacheDir : new File(sourceCacheDir, dir);
+	
+	                    LOG.info("    " + fileName + " -> " + dest.getAbsolutePath() + " [" + destCache.getAbsolutePath() + "]");
+	
+	                    translateFile(pfile, base, dest, destCache);
+	                }
+				}
+				finally {
+					if(lockFile != null)
+						lockFile.delete();
+				}
             }
         }
 
