@@ -266,7 +266,7 @@ public class Translater {
 							break;
 					}
 					if(lockFile.exists())
-						throw new IllegalStateException("Failed to get an exclusive lock on " + pfile);
+						LOG.warn("Failed to get an exclusive lock on " + pfile + ", just continuing");
 					lockFile.createNewFile();
 					lockFile.deleteOnExit();
 				}
