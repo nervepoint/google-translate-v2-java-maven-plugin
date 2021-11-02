@@ -20,11 +20,11 @@
 	<distributionManagement>
 		<repository>
 			<id>opensource-releases</id>
-			<url>http://artifactory.javassh.com/opensource-releases</url>
+			<url>https://artifactory.jadaptive.com/opensource-releases</url>
 		</repository>
 		<snapshotRepository>
 			<id>opensource-snapshots</id>
-			<url>http://artifactory.javassh.com/opensource-snapshots</url>
+			<url>https://artifactory.jadaptive.com/opensource-snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 
@@ -162,6 +162,25 @@
 				</plugins>
 			</build>
 		</profile>
+		<profile>
+			<activation>
+				<jdk>[9,)</jdk>
+			</activation>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-javadoc-plugin</artifactId>
+							<configuration>
+								<!-- TODO: Why is this STILL broken! -->
+								<javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
 	</profiles>
 
 	<build>
@@ -173,10 +192,6 @@
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>3.2.0</version>
 					<configuration>
-						<!-- TODO: Why is this STILL broken! -->
-						<!--<javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>-->
-
-						<!-- <skip>true</skip> -->
 						<encoding>UTF-8</encoding>
 						<excludePackageNames>**.impl.*</excludePackageNames>
 
