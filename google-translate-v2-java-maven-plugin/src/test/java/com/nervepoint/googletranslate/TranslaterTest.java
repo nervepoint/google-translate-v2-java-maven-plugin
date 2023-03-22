@@ -19,10 +19,12 @@ import edu.emory.mathcs.backport.java.util.Arrays;
 
 public class TranslaterTest {
 
+    static CacheBackend cacheBackend;
     static File cacheDir;
     static File targetDir;
     static {
         cacheDir = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString() + ".test");
+    	cacheBackend = new LocalCacheBackend(cacheDir.toPath());
         targetDir = new File("target/test-translations");
     }
 
@@ -79,7 +81,7 @@ public class TranslaterTest {
 
         Translater t = new Translater();
         t.setApikey(p.getProperty("apikey"));
-        t.setCacheDir(cacheDir);
+        t.setCacheDir(cacheBackend);
         t.setUseHtmlForNonTranslatable(true);
         t.setTargetDirectory(targetDir);
 

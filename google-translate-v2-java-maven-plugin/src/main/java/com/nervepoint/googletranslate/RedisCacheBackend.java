@@ -103,12 +103,6 @@ public class RedisCacheBackend implements CacheBackend {
 			jedis.close();
 		}
 		
-		OutputStream out = Files.newOutputStream(cacheFile);
-		try {
-			cached.store(out, "Cache of auto generated google translations for Google Translate V2 API maven plugin");
-		} finally {
-			out.close();
-		}
 	}
 
 	@Override

@@ -231,7 +231,7 @@ public class Translater {
             try {
                 processDirectory(targetDirectory);
             } catch (Exception e) {
-                throw new IOException("Translate failed: " + e.getMessage());
+                throw new IOException("Translate failed: " + e.getMessage(), e);
             }
 
             return;

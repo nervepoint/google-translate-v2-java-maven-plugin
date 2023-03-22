@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -32,8 +33,16 @@ public class LocalCacheBackend implements CacheBackend {
 			Files.createDirectories(cacheDir);
 	}
 
+	public LocalCacheBackend(Path cacheDir) {
+		this.cacheDir = cacheDir;
+	}
+
 	public LocalCacheBackend() {
-		cacheDir = Paths.get(System.getProperty("user.home")).resolve(".i18n_cache");
+		this(Paths.get(System.getProperty("user.home")).resolve(".i18n_cache"));
+	}
+	
+	public Path getCacheDir() {
+		return cacheDir;
 	}
 
 	@Override
@@ -54,7 +63,7 @@ public class LocalCacheBackend implements CacheBackend {
 			} finally {
 				in.close();
 			}
-		} catch (FileNotFoundException ex) {
+		} catch (FileNotFoundException | NoSuchFileException ex) {
 			LOG.warn("Could not find cache file " + cacheFile + " so a complete translation will be performed");
 		}
 		return p;
