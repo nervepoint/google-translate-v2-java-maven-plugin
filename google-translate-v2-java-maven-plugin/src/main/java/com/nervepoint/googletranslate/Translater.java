@@ -7,12 +7,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -53,7 +56,7 @@ public class Translater {
     private String sourceScript;
     private String sourceVariant;
     private String languages = "es,fr,nl,it,pl";
-    private File cacheDir = new File(System.getProperty("user.home") + File.separator + ".i18n_cache");
+    private CacheBackend cacheBackend = new LocalCacheBackend();
     private String format;
     private boolean useHtmlForNonTranslatable = true;
     private int maxSourcesPerCall = 10;
@@ -136,12 +139,12 @@ public class Translater {
         this.languages = languages;
     }
 
-    public File getCacheDir() {
-        return cacheDir;
+    public CacheBackend getCacheDir() {
+        return cacheBackend;
     }
 
-    public void setCacheDir(File cacheDir) {
-        this.cacheDir = cacheDir;
+    public void setCacheDir(CacheBackend cacheBackend) {
+        this.cacheBackend = cacheBackend;
     }
 
     public String getFormat() {
@@ -206,9 +209,7 @@ public class Translater {
             throw new IOException("Translation will not be performed as targetDirectory has not been set.");
         }
 
-        LOG.info("Cache dir is " + cacheDir);
-
-        cacheDir.mkdirs();
+        LOG.info("Cache dir is " + cacheBackend);
 
         replacer = new PatternReplacer();
         if (!noTranslatePattern.isEmpty() && useHtmlForNonTranslatable) {
@@ -228,7 +229,7 @@ public class Translater {
                 new TranslateRequestInitializer(apikey)).setApplicationName("GoogleTranslateMavenPlugin/0.2").build();
 
             try {
-                processDirectory(targetDirectory, cacheDir);
+                processDirectory(targetDirectory);
             } catch (Exception e) {
                 throw new IOException("Translate failed: " + e.getMessage());
             }
@@ -240,7 +241,7 @@ public class Translater {
 
     }
 
-    private void processDirectory(File destinationDir, File sourceCacheDir) throws IOException, URISyntaxException {
+    private void processDirectory(File destinationDir) throws IOException, URISyntaxException {
 
         LOG.info("Using target directory " + destinationDir.getAbsolutePath());
 
@@ -336,11 +337,11 @@ public class Translater {
 	                    LOG.info("Skipping " + pfile.getName() + " because it is not the same as the source locale");
 	                } else {
 	                    File dest = dir.equals("") ? destinationDir : new File(destinationDir, dir);
-	                    File destCache = dir.equals("") ? sourceCacheDir : new File(sourceCacheDir, dir);
+	                    Optional<Path> destCachePath = Optional.ofNullable(dir.equals("") ? null : Paths.get(dir));
 	
-	                    LOG.info("    " + fileName + " -> " + dest.getAbsolutePath() + " [" + destCache.getAbsolutePath() + "]");
+	                    LOG.info("    " + fileName + " -> " + dest.getAbsolutePath() + " [" + destCachePath.toString() + "]");
 	
-	                    translateFile(pfile, base, dest, destCache);
+	                    translateFile(pfile, base, dest, destCachePath);
 	                }
 				}
 				finally {
@@ -352,7 +353,7 @@ public class Translater {
 
     }
 
-    private void translateFile(File sourceFile, String baseName, File desintationDir, File sourceCacheDir) throws IOException,
+    private void translateFile(File sourceFile, String baseName, File desintationDir, Optional<Path> cacheResourcePath) throws IOException,
                     URISyntaxException {
 
         StringTokenizer t = new StringTokenizer(languages, ",");
@@ -365,21 +366,18 @@ public class Translater {
                 continue;
             }
 
-            translateFileToLanguage(sourceFile, baseName, desintationDir, sourceCacheDir, l);
+            translateFileToLanguage(sourceFile, baseName, desintationDir, cacheResourcePath, l);
 
         }
 
     }
 
-    private void translateFileToLanguage(File sourceFile, String baseName, File destinationDir, File sourceCacheDir,
+    private void translateFileToLanguage(File sourceFile, String baseName, File destinationDir, Optional<Path> cacheResourcePath,
                                          String language) throws IOException, URISyntaxException {
-
-        sourceCacheDir.mkdirs();
 
         LOG.info("Translating " + sourceFile.getName() + " to " + language);
 
         File overrideFile = new File(sourceFile.getParentFile(), baseName + "_" + language + ".properties");
-        File previousTranslation = new File(sourceCacheDir, baseName + "_" + language + ".properties");
 
         Properties p;
         Properties translated = new Properties();
@@ -388,7 +386,7 @@ public class Translater {
 
         p = loadProperties(sourceFile, "source");
         override = loadProperties(overrideFile, "override");
-        cached = loadProperties(previousTranslation, "cache");
+        cached =  cacheBackend.retrieve(cacheResourcePath, baseName, language);
 
         boolean needCacheWrite = false;
 
@@ -543,12 +541,7 @@ public class Translater {
         }
 
         if (needCacheWrite) {
-            out = new FileOutputStream(previousTranslation);
-            try {
-                cached.store(out, "Cache of auto generated google translations for Google Translate V2 API maven plugin");
-            } finally {
-                out.close();
-            }
+        	cacheBackend.store(cacheResourcePath, baseName, language, cached);
         }
 
     }
