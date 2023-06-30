@@ -109,6 +109,7 @@ public class GoogleTranslateV2 extends AbstractMojo {
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if(skip) {
 			getLog().info("Skipping translation");
+			return;
 		}
 
 		CacheBackend cacheBackend;
