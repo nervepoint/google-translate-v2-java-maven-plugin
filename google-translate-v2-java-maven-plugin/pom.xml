@@ -141,6 +141,42 @@
 
 	<profiles>
 		<profile>
+			<id>shaded</id>
+			<dependencies>
+				<dependency>
+					<groupId>com.h2database</groupId>
+					<artifactId>h2</artifactId>
+					<version>1.4.196</version>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-shade-plugin</artifactId>
+						<version>3.3.0</version>
+						<executions>
+							<execution>
+								<id>shade-translate-import</id>
+								<phase>package</phase>
+								<goals>
+									<goal>shade</goal>
+								</goals>
+								<configuration>
+									<finalName>local-to-redis</finalName>
+									<transformers>
+										<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+											<mainClass>com.nervepoint.googletranslate.LocalToRedis</mainClass>
+										</transformer>
+									</transformers>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
 			<id>release-sign-artifacts</id>
 			<activation>
 				<property>
@@ -217,13 +253,13 @@
 						<id>default-descriptor</id>
 						<phase>process-classes</phase>
 					</execution>
-					<!-- if you want to generate help goal -->
+					<!-- if you want to generate help goal 
 					<execution>
 						<id>help-goal</id>
 						<goals>
 							<goal>helpmojo</goal>
 						</goals>
-					</execution>
+					</execution>-->
 				</executions>
 			</plugin>
 			<plugin>

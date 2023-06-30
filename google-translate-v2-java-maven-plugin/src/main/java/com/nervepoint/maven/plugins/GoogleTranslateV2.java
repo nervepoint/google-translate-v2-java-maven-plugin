@@ -86,6 +86,9 @@ public class GoogleTranslateV2 extends AbstractMojo {
 	private boolean useHtmlForNonTranslatable = true;
 
 	@Parameter
+	private boolean skip = false;
+
+	@Parameter
 	private int maxSourcesPerCall = 10;
 
 	@Parameter
@@ -104,6 +107,9 @@ public class GoogleTranslateV2 extends AbstractMojo {
 	private MavenProject project;
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
+		if(skip) {
+			getLog().info("Skipping translation");
+		}
 
 		CacheBackend cacheBackend;
 		
