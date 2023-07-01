@@ -235,6 +235,8 @@ public class Translater {
             }
 
             return;
+        } catch(IOException ioe) {
+        	throw ioe;
         } catch (Throwable t) {
             throw new IOException("Failed to translate.", t);
         }
@@ -339,7 +341,7 @@ public class Translater {
 	                    File dest = dir.equals("") ? destinationDir : new File(destinationDir, dir);
 	                    Optional<Path> destCachePath = Optional.ofNullable(dir.equals("") ? null : Paths.get(dir));
 	
-	                    LOG.info("    " + fileName + " -> " + dest.getAbsolutePath() + " [" + destCachePath.toString() + "]");
+	                    LOG.info("    " + fileName + " -> " + dest.getAbsolutePath() + " [" + destCachePath.map(Path::toString).orElse("<default>") + "]");
 	
 	                    translateFile(pfile, base, dest, destCachePath);
 	                }

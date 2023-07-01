@@ -48,7 +48,7 @@ public class LocalCacheBackend implements CacheBackend {
 	@Override
 	public Properties retrieve(Optional<Path> resourcePath, String baseName, String language) throws IOException {
 		if (resourcePath.isPresent())
-			Files.createDirectories(resourcePath.get());
+			Files.createDirectories(cacheDir.resolve(makeRelative(resourcePath)));
 
 		Path cacheFile = resolveCacheFile(resourcePath, baseName, language);
 
@@ -69,8 +69,17 @@ public class LocalCacheBackend implements CacheBackend {
 		return p;
 	}
 
+	protected Path makeRelative(Optional<Path> resourcePath) {
+		Path p = resourcePath.get();
+		if(p.isAbsolute()) {
+			return Paths.get("/").relativize(p);
+		}
+		else
+			return p;
+	}
+
 	protected Path resolveCacheFile(Optional<Path> resourcePath, String baseName, String language) {
-		return (resourcePath.isPresent() ? cacheDir.resolve(resourcePath.get()) : cacheDir)
+		return (resourcePath.isPresent() ? cacheDir.resolve(makeRelative(resourcePath)) : cacheDir)
 				.resolve(baseName + "_" + language + ".properties");
 	}
 
