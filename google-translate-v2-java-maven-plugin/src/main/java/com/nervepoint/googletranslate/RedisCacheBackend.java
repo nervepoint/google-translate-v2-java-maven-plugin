@@ -2,7 +2,6 @@ package com.nervepoint.googletranslate;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -20,7 +19,7 @@ public class RedisCacheBackend implements CacheBackend {
 
 	final static Logger LOG = LoggerFactory.getLogger(RedisCacheBackend.class);
 
-	private final Path cacheDir;
+	private final String cacheDir;
 	private final JedisPool pool;
 
 	private final Optional<String> username;
@@ -31,7 +30,7 @@ public class RedisCacheBackend implements CacheBackend {
 		this.pool = pool;
 		this.username = username;
 		this.password = password;
-		Path groupDir = cacheTag.isPresent() ? Paths.get(groupId).resolve(cacheTag.get()) : Paths.get(groupId);
+		String groupDir = cacheTag.isPresent() ? Paths.get(groupId).resolve(cacheTag.get()).toString().replace('\\','/') : Paths.get(groupId).toString().replace('\\','/');
 		if (failIfMissing) {
 			Jedis jedis = createClient(pool, username, password);
 			try {
@@ -44,7 +43,7 @@ public class RedisCacheBackend implements CacheBackend {
 			}
 		}
 
-		this.cacheDir = groupDir.resolve(projectId);
+		this.cacheDir = groupDir + "/" + projectId;
 	}
 
 	protected Jedis createClient(JedisPool pool, Optional<String> username, Optional<String> password) {
@@ -61,11 +60,8 @@ public class RedisCacheBackend implements CacheBackend {
 	@Override
 	public Properties retrieve(Optional<Path> resourcePath, String baseName, String language) throws IOException {
 
-		Path cacheKey = resolveCacheFile(resourcePath, baseName, language);
+		String cacheKey = resolveCacheKey(resourcePath, baseName, language);
 
-		if (Files.exists(cacheKey)) {
-			LOG.info("Loading cache file " + cacheKey.toAbsolutePath().toString());
-		}
 		Properties p = new Properties();
 		Jedis jedis = createClient(pool, username, password);
 		try {
@@ -81,23 +77,23 @@ public class RedisCacheBackend implements CacheBackend {
 		return p;
 	}
 
-	protected Path resolveCacheFile(Optional<Path> resourcePath, String baseName, String language) {
-		return (resourcePath.isPresent() ? cacheDir.resolve(resourcePath.get()) : cacheDir)
-				.resolve(baseName + "_" + language);
+	protected String resolveCacheKey(Optional<Path> resourcePath, String baseName, String language) {
+		return (resourcePath.isPresent() ? cacheDir + "/" + resourcePath.get().toString().replace('\\', '/') : cacheDir)
+				+ baseName + "_" + language;
 	}
 
 	@Override
 	public void store(Optional<Path> resourcePath, String baseName, String language, Properties cached)
 			throws IOException {
 
-		Path cacheFile = resolveCacheFile(resourcePath, baseName, language);
+		String cacheKey = resolveCacheKey(resourcePath, baseName, language);
 		Jedis jedis = createClient(pool, username, password);
 		try {
 			Map<String, String> m = new HashMap<String, String>();
 			for(Object key : cached.keySet()) {
 				m.put((String)key, cached.getProperty((String)key));
 			}
-			jedis.hset(cacheFile.toString(), m);
+			jedis.hset(cacheKey.toString(), m);
 		} finally {
 			jedis.close();
 		}
