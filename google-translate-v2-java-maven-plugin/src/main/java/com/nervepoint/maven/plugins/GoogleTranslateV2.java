@@ -34,73 +34,73 @@ import redis.clients.jedis.JedisPool;
 @Mojo(name = "translate", requiresProject = false, threadSafe = true)
 public class GoogleTranslateV2 extends AbstractMojo {
 
-	@Parameter(defaultValue = "${api.key}")
+	@Parameter(defaultValue = "${api.key}", property = "translate.apiKey")
 	private String apikey;
 
-	@Parameter(defaultValue = "${basedir}/src/main/resources")
+	@Parameter(defaultValue = "${basedir}/src/main/resources", property = "translate.sourceDirectory")
 	private String sourceDirectory;
 
 	@Parameter
 	private FileSet fileSet;
 
-	@Parameter
+	@Parameter(property = "translate.recurse")
 	private boolean recurse;
 
-	@Parameter(defaultValue = "${basedir}/target/classes")
+	@Parameter(defaultValue = "${basedir}/target/classes", property = "translate.targetDirectory")
 	private String targetDirectory;
 
-	@Parameter(defaultValue = "en")
+	@Parameter(defaultValue = "en", property = "translate.sourceLanguage")
 	private String sourceLanguage;
 
-	@Parameter
+	@Parameter(property = "translate.sourceCountry")
 	private String sourceCountry;
 
-	@Parameter
+	@Parameter(property = "translate.sourceScript")
 	private String sourceScript;
 
-	@Parameter
+	@Parameter(property = "translate.sourceVariant")
 	private String sourceVariant;
 
-	@Parameter(defaultValue = "es,fr,nl,it,pl")
+	@Parameter(defaultValue = "es,fr,nl,it,pl", property = "translate.language")
 	private String languages;
 
-	@Parameter(defaultValue = "${translateCacheDir}")
+	@Parameter(defaultValue = "${translateCacheDir}", property = "translate.cacheDir")
 	private String cacheDir;
 
-	@Parameter
+	@Parameter(property = "translate.cacheTag")
 	private String cacheTag;
 
-	@Parameter
+	@Parameter(property = "translate.format")
 	private String format;
 
-	@Parameter
+	@Parameter(property = "translate.distributedCache")
 	private String distributedCache;
 
-	@Parameter
+	@Parameter(property = "translate.username")
 	private String username;
 
-	@Parameter
+	@Parameter(property = "translate.password")
 	private String password;
 
-	@Parameter(defaultValue = "true")
+	@Parameter(defaultValue = "true", property = "translate.useHtmlForNonTranslatable")
 	private boolean useHtmlForNonTranslatable = true;
 
-	@Parameter
+	@Parameter(property = "translate.skip")
 	private boolean skip = false;
 
-	@Parameter
+	@Parameter(property = "translate.maxSourcesPerCall")
 	private int maxSourcesPerCall = 10;
 
-	@Parameter
+	@Parameter(property = "translate.noTranslate")
 	private List<String> noTranslatePattern = new ArrayList<String>();
 
-	@Parameter
+	@Parameter(property = "translate.excludeKeys")
 	private List<String> excludeKeys = new ArrayList<String>();
 
-	@Parameter(defaultValue = "true")
+	@Parameter(defaultValue = "true", property = "translate.failOnMissingCacheDir")
 	private boolean failOnMissingCacheDir;
 
-	@Parameter(defaultValue = "false")
+	@Parameter(defaultValue = "false", property = "translate.failOnMissingSourceDir")
 	private boolean failOnMissingSourceDir;
 
 	@Component

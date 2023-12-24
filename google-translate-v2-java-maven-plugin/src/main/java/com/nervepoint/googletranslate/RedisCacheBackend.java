@@ -78,8 +78,17 @@ public class RedisCacheBackend implements CacheBackend {
 	}
 
 	protected String resolveCacheKey(Optional<Path> resourcePath, String baseName, String language) {
-		return (resourcePath.isPresent() ? cacheDir + "/" + resourcePath.get().toString().replace('\\', '/') : cacheDir)
+		return (resourcePath.isPresent() ? cacheDir + "/" + makeRelative(resourcePath).toString().replace('\\', '/') : cacheDir)
 				+ baseName + "_" + language;
+	}
+	
+	protected Path makeRelative(Optional<Path> resourcePath) {
+		Path p = resourcePath.get();
+		if(p.isAbsolute()) {
+			return Paths.get("/").relativize(p);
+		}
+		else
+			return p;
 	}
 
 	@Override
