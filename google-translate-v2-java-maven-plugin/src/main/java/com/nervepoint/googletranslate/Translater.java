@@ -377,8 +377,6 @@ public class Translater {
     private void translateFileToLanguage(File sourceFile, String baseName, File destinationDir, Optional<Path> cacheResourcePath,
                                          String language) throws IOException, URISyntaxException {
 
-        LOG.info("Translating " + sourceFile.getName() + " to " + language);
-
         File overrideFile = new File(sourceFile.getParentFile(), baseName + "_" + language + ".properties");
 
         Properties p;
@@ -416,7 +414,7 @@ public class Translater {
 
             if (override.containsKey(name)) {
                 translated.put(name, override.getProperty(name));
-                LOG.info("Detected overridden text for " + name);
+                LOG.debug("Detected overridden text for " + name);
                 continue;
             } else if (cached.containsKey(name)) {
 
@@ -475,7 +473,7 @@ public class Translater {
 
         if (!ops.isEmpty()) {
 
-            LOG.info("Translating " + ops.size() + " properties");
+            LOG.debug("Translating " + ops.size() + " properties");
 
             String format = null;
             while (!ops.isEmpty()) {
@@ -505,6 +503,9 @@ public class Translater {
                 }
 
                 if (!todo.isEmpty()) {
+
+                    LOG.info("Translating " + sourceFile.getName() + " to " + language);
+                    
                     translateOps(todo, sourceLanguage, language);
 
                     /* Post process */
