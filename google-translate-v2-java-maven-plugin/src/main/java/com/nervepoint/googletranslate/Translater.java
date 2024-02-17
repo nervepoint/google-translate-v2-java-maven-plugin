@@ -504,7 +504,7 @@ public class Translater {
 
                 if (!todo.isEmpty()) {
 
-                    LOG.info("Translating " + sourceFile.getName() + " to " + language);
+                    LOG.info("Translating " + todo.size() + " in " + sourceFile.getName() + " to " + language);
                     
                     translateOps(todo, sourceLanguage, language);
 
