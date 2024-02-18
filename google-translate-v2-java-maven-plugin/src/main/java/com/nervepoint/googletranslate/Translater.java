@@ -613,7 +613,7 @@ public class Translater {
 
     private Properties loadProperties(File path, String type) throws UnsupportedEncodingException, IOException {
         if (path.exists()) {
-            LOG.info("Loading " + type + " file " + path.getAbsolutePath());
+            LOG.debug("Loading " + type + " file " + path.getAbsolutePath());
         }
         Properties p = new Properties();
         try {
