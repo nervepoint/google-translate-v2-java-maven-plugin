@@ -276,7 +276,7 @@ public class Translater {
 				
 				try {
 	                String fileName = p.getRelativePath();
-	                int lidx = fileName.lastIndexOf('/');
+	                int lidx = fileName.lastIndexOf(File.separatorChar);
 	                String dir = lidx == -1 ? "" : fileName.substring(0, lidx);
 	                String pname = pfile.getName();
 	                int idx = pname.lastIndexOf('.');

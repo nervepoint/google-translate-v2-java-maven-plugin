@@ -111,7 +111,7 @@ public class RedisCacheBackend implements CacheBackend {
 
 	@Override
 	public String toString() {
-		return "LocalCacheBackend [cacheDir=" + cacheDir + "]";
+		return "RedisCacheBackend [cacheDir=" + cacheDir + "]";
 	}
 
 	@Override
