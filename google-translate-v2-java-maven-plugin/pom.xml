@@ -2,31 +2,14 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.nervepoint</groupId>
+	<groupId>com.jadaptive</groupId>
 	<artifactId>google-translate-v2-java-maven-plugin</artifactId>
-	<version>0.9.1-SNAPSHOT</version>
-	<url>http://www.nervepoint.com/</url>
+	<version>1.0.0</version>
+	<url>https://github.com/nervepoint/google-translate-v2-java-maven-plugin</url>
 	<packaging>maven-plugin</packaging>
 
 	<name>Google Translate V2 Maven Plugin</name>
 	<description>A Maven plugin that provides translation of i18n resources using Google Translate V2 API</description>
-
-	<parent>
-		<groupId>org.sonatype.oss</groupId>
-		<artifactId>oss-parent</artifactId>
-		<version>7</version>
-	</parent>
-
-	<distributionManagement>
-		<repository>
-			<id>opensource-releases</id>
-			<url>https://artifactory.jadaptive.com/opensource-releases</url>
-		</repository>
-		<snapshotRepository>
-			<id>opensource-snapshots</id>
-			<url>https://artifactory.jadaptive.com/opensource-snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
 
 	<licenses>
 		<license>
@@ -37,9 +20,9 @@
 	</licenses>
 
 	<scm>
-		<url>http://github.com/ludup/google-translate-v2-java-maven-plugin</url>
-		<connection>scm:git:https://github.com/ludup/google-translate-v2-java-maven-plugin</connection>
-		<developerConnection>scm:git:https://github.com/ludup/google-translate-v2-java-maven-plugin</developerConnection>
+		<url>https://github.com/nervepoint/google-translate-v2-java-maven-plugin</url>
+		<connection>scm:git:https://github.com/nervepoint/google-translate-v2-java-maven-plugin</connection>
+		<developerConnection>scm:git:https://github.com/nervepoint/google-translate-v2-java-maven-plugin</developerConnection>
 	</scm>
 
 	<developers>
@@ -141,42 +124,6 @@
 
 	<profiles>
 		<profile>
-			<id>shaded</id>
-			<dependencies>
-				<dependency>
-					<groupId>com.h2database</groupId>
-					<artifactId>h2</artifactId>
-					<version>1.4.196</version>
-				</dependency>
-			</dependencies>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-shade-plugin</artifactId>
-						<version>3.3.0</version>
-						<executions>
-							<execution>
-								<id>shade-translate-import</id>
-								<phase>package</phase>
-								<goals>
-									<goal>shade</goal>
-								</goals>
-								<configuration>
-									<finalName>local-to-redis</finalName>
-									<transformers>
-										<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-											<mainClass>com.nervepoint.googletranslate.LocalToRedis</mainClass>
-										</transformer>
-									</transformers>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
 			<id>release-sign-artifacts</id>
 			<activation>
 				<property>
@@ -186,20 +133,23 @@
 			</activation>
 			<build>
 				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.1</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                    </plugin>
 				</plugins>
 			</build>
 		</profile>
@@ -228,61 +178,87 @@
 		<pluginManagement>
 
 			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>3.2.0</version>
-					<configuration>
-						<encoding>UTF-8</encoding>
-						<excludePackageNames>**.impl.*</excludePackageNames>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <executions>
+                        <execution>
+                            <id>sign-artifacts</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+				
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.5.0</version>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <encoding>UTF-8</encoding>
+                        <detectJavaApiLink>false</detectJavaApiLink>
+                        <source>8</source>
+                        <doclint>none</doclint>
+                        <sourcepath>src/main/java</sourcepath>
+                        <includeDependencySources>false</includeDependencySources>
+                        <dependencySourceIncludes>
+                            <dependencySourceInclude>com.nervepoint:*</dependencySourceInclude>
+                        </dependencySourceIncludes>
+                    </configuration>
+                </plugin>
 
-						<!-- https://bugs.openjdk.java.net/browse/JDK-8212233 -->
-						<source>8</source>
-						<additionalparam>-Xdoclint:none</additionalparam>
-					</configuration>
-				</plugin>
+                <plugin>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <version>0.8.0</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <publishingServerId>central-jadaptive</publishingServerId>
+                         <autoPublish>true</autoPublish>
+                         <waitUntil>published</waitUntil>
+                    </configuration>
+                </plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-plugin-plugin</artifactId>
-				<version>3.5</version>
-				<executions>
-					<execution>
-						<id>default-descriptor</id>
-						<phase>process-classes</phase>
-					</execution>
-					<!-- if you want to generate help goal 
-					<execution>
-						<id>help-goal</id>
-						<goals>
-							<goal>helpmojo</goal>
-						</goals>
-					</execution>-->
-				</executions>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
+				<version>3.12.1</version>
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.4</version>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -295,21 +271,11 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-release-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>default</id>
-						<goals>
-							<goal>perform</goal>
-						</goals>
-						<configuration>
-							<pomFileName>google-translate-v2-java-maven-plugin/pom.xml</pomFileName>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+            </plugin>
 		</plugins>
 	</build>
 </project>
